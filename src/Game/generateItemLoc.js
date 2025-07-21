@@ -1,10 +1,6 @@
 function generateItemLoc(rowNum, colNum, snake){
    let randRow;
    let randCol;
-   let snakeBody = [];
-   for(let a of snakeBody){
-      snakeBody.push(structuredClone(a));
-   }
 
    do{
       randRow = Math.floor(Math.random() * rowNum);

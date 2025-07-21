@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import ControlBtns from "./components/ControlBtns";
 import Board from "./components/Board";
 
@@ -12,24 +12,40 @@ import generateItemLoc from "./Game/generateItemLoc";
 function App(){
    const [isPlaying, setPlaying] = useState(false);
    const [snake, setSnake] = useState(initialSnake);
-   const [boardBoxes, setBoardBoxes] = useState(createBoxArray(rowNum, colNum, initialSnake));
+   const [boardBoxes, setBoardBoxes] = useState(()=> {
+      return createBoxArray(rowNum, colNum, initialSnake);
+   });
    const [score, setScore] = useState(0);
-   const [scoreItem, setScoreItem] = useState(generateItemLoc(rowNum, colNum, initialSnake));
-   const [fistStart, setFirstStart] = useState(true);
+   const [scoreItem, setScoreItem] = useState(()=>{
+      return generateItemLoc(rowNum, colNum, initialSnake);
+   });
+   const [firstStart, setFirstStart] = useState(true);
+
+   const snakeRef = useRef(snake);
+   const scoreItemRef = useRef(scoreItem);
+
+   useEffect(()=>{
+      snakeRef.current = snake;
+   }, [snake]);
+   
+   useEffect(()=>{
+      scoreItemRef.current = scoreItem;
+   }, [scoreItem]);
 
    useEffect(()=>{
       let interval;
       if(isPlaying){
-         interval = setInterval(updateBoard, 300);
+         interval = setInterval(updateBoard, 500);
          document.addEventListener("keydown", handleKeyDown);
+      } else{ 
+         clearInterval(interval);
       }
-      if(!isPlaying) clearInterval(interval);
 
       return ()=> {
          document.removeEventListener("keydown", handleKeyDown);
          clearInterval(interval);
       };
-   }, [snake, isPlaying]);
+   }, [isPlaying]);
 
    function handleKeyDown(event){
       switch(event.key){
@@ -62,16 +78,15 @@ function App(){
 
    function updateBoard() {
       if (!isPlaying) return;
-      const {newHead, newBody, collided, increase} = moveSnake(structuredClone(snake), rowNum, colNum, scoreItem);
+      const {newHead, newBody, collided, increase} = moveSnake(structuredClone(snakeRef.current), rowNum, colNum, scoreItemRef.current);
       if(collided){
          setPlaying(false);
          return;
       } 
       else if(increase){
+         const itemLoc = generateItemLoc(rowNum, colNum, structuredClone(snakeRef.current));
          setScore(s => s + 1);
-         setScoreItem(()=>{
-            return generateItemLoc(rowNum, colNum, snake);
-         });
+         setScoreItem(itemLoc);
       }
       setSnake(prev => {
          return ({
@@ -82,7 +97,7 @@ function App(){
       });
       setBoardBoxes(prev => {
          let newBoard = prev.map(row => row.map(box => ({ ...box, color: "" })));
-         newBoard[scoreItem[0]][scoreItem[1]].color = COLORS.scoreItem;
+         newBoard[scoreItemRef.current[0]][scoreItemRef.current[1]].color = COLORS.scoreItem;
          newBoard[newHead[0]][newHead[1]].color = COLORS.head;
          newBody.forEach(box => {
             newBoard[box[0]][box[1]].color = COLORS.body;
@@ -93,7 +108,7 @@ function App(){
    }
 
    function updateDirection(newDirection){
-      if(!restrictDirection(newDirection, snake.direction)) return;
+      if(!restrictDirection(newDirection, snakeRef.current.direction)) return;
       setSnake(prev =>{
          return {
             ...prev,
@@ -112,18 +127,25 @@ function App(){
 
    return(
    <>
-      {(!isPlaying && fistStart) 
-         && <>
-            <h1>Snake Game</h1>
-            <Button variant="contained" color="success" size="large" onClick={resetGame}>Start</Button> 
+      {!isPlaying && ( 
+         <>
+            <h1 
+               style={
+                  {color: (!firstStart ? "red" : null)}
+               }
+            >
+               {firstStart ? "Snake Game" : "GAME OVER"}
+            </h1>
+            <Button 
+               variant="contained" 
+               color={firstStart ? "success" : "warning"}
+               size="large" 
+               onClick={resetGame}
+            >
+               {firstStart ? "Start" : "Retry"}
+            </Button> 
          </>
-      }
-      {(!isPlaying && !fistStart) 
-         && <>
-            <h1 style={{color: "red"}}>GAME OVER</h1>
-            <Button variant="contained" color="warning" size="large" onClick={resetGame}>Retry</Button>
-         </>
-      }
+      )}
       <h2>Score: {score}</h2>
       <Board boardBoxes={boardBoxes} />
       <ControlBtns onClick={updateDirection} />
