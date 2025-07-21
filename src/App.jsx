@@ -79,11 +79,7 @@ function App(){
    function updateBoard() {
       if (!isPlaying) return;
       const {newHead, newBody, collided, increase} = moveSnake(structuredClone(snakeRef.current), rowNum, colNum, scoreItemRef.current);
-      if(collided){
-         setPlaying(false);
-         return;
-      } 
-      else if(increase){
+      if(increase){
          const itemLoc = generateItemLoc(rowNum, colNum, structuredClone(snakeRef.current));
          setScore(s => s + 1);
          setScoreItem(itemLoc);
@@ -104,7 +100,7 @@ function App(){
          });
          return newBoard;
       });
-
+      if(collided) setPlaying(false);
    }
 
    function updateDirection(newDirection){
