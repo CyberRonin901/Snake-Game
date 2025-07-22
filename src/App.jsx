@@ -11,26 +11,14 @@ import generateItemLoc from "./Game/generateItemLoc";
 
 function App(){
    const [isPlaying, setPlaying] = useState(false);
-   const [snake, setSnake] = useState(initialSnake);
    const [boardBoxes, setBoardBoxes] = useState(()=> {
       return createBoxArray(rowNum, colNum, initialSnake);
    });
    const [score, setScore] = useState(0);
-   const [scoreItem, setScoreItem] = useState(()=>{
-      return generateItemLoc(rowNum, colNum, initialSnake);
-   });
    const [firstStart, setFirstStart] = useState(true);
 
-   const snakeRef = useRef(snake);
-   const scoreItemRef = useRef(scoreItem);
-
-   useEffect(()=>{
-      snakeRef.current = snake;
-   }, [snake]);
-   
-   useEffect(()=>{
-      scoreItemRef.current = scoreItem;
-   }, [scoreItem]);
+   var scoreItem = generateItemLoc(rowNum, colNum, initialSnake);
+   var snake = structuredClone(initialSnake);
 
    useEffect(()=>{
       let interval;
@@ -78,29 +66,24 @@ function App(){
 
    function updateBoard() {
       if (!isPlaying) return;
-      const {newHead, newBody, collided, self_collided, increase} = moveSnake(structuredClone(snakeRef.current), rowNum, colNum, scoreItemRef.current);
+      const {newHead, newBody, collided, self_collided, increase} = moveSnake(structuredClone(snake), rowNum, colNum, scoreItem);
       if(collided){
          setPlaying(false);
          return;
       }
       else if(increase){
-         const itemLoc = generateItemLoc(rowNum, colNum, structuredClone(snakeRef.current));
+         scoreItem = generateItemLoc(rowNum, colNum, structuredClone(snake));
          setScore(s => s + 1);
-         setScoreItem(itemLoc);
       }
-      setSnake(prev => {
-         return ({
-            ...prev,
-            head: newHead,
-            body: newBody,
-         })
-      });
+      snake.head = newHead;
+      snake.body = newBody;
+
       setBoardBoxes(prev => {
          let newBoard = prev.map(row => row.map(box => ({ ...box, color: "" })));
          newBody.forEach(box => {
             newBoard[box[0]][box[1]].color = COLORS.body;
          });
-         newBoard[scoreItemRef.current[0]][scoreItemRef.current[1]].color = COLORS.scoreItem;
+         newBoard[scoreItem[0]][scoreItem[1]].color = COLORS.scoreItem;
          newBoard[newHead[0]][newHead[1]].color = COLORS.head;
          return newBoard;
       });
@@ -108,20 +91,15 @@ function App(){
    }
 
    function updateDirection(newDirection){
-      if(!restrictDirection(newDirection, snakeRef.current.direction)) return;
-      setSnake(prev =>{
-         return {
-            ...prev,
-            direction: newDirection
-         }
-      })
+      if(!restrictDirection(newDirection, snake.direction)) return;
+      snake.direction = newDirection;
    }
 
    function resetGame(){
       setScore(0);
       setFirstStart(false);
-      setScoreItem(()=> generateItemLoc(rowNum, colNum, initialSnake));
-      setSnake(initialSnake);
+      scoreItem = generateItemLoc(rowNum, colNum, initialSnake);
+      snake = structuredClone(initialSnake);
       setPlaying(true);
    }
 
