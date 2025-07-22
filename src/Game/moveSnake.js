@@ -44,9 +44,9 @@ function moveSnake(snake, rowNum, colNum, scoreItem) {
       }
    }
 
-   let collided = false;
+   let self_collided = false;
    if(checkSelfCollision(snake.body, newHead)){
-      collided = true;
+      self_collided = true;
    }
    if(JSON.stringify(newHead) === JSON.stringify(scoreItem)){
       increase = true;
@@ -55,7 +55,7 @@ function moveSnake(snake, rowNum, colNum, scoreItem) {
    let newBody = snake.body;
    if(!increase) newBody.pop();
    newBody.unshift(snake.head);
-   return {newHead, newBody, increase, collided};
+   return {newHead, newBody, increase, self_collided};
 }
 
 function checkSelfCollision(body, newHead){

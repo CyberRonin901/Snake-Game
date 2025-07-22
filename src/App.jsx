@@ -78,8 +78,12 @@ function App(){
 
    function updateBoard() {
       if (!isPlaying) return;
-      const {newHead, newBody, collided, increase} = moveSnake(structuredClone(snakeRef.current), rowNum, colNum, scoreItemRef.current);
-      if(increase){
+      const {newHead, newBody, collided, self_collided, increase} = moveSnake(structuredClone(snakeRef.current), rowNum, colNum, scoreItemRef.current);
+      if(collided){
+         setPlaying(false);
+         return;
+      }
+      else if(increase){
          const itemLoc = generateItemLoc(rowNum, colNum, structuredClone(snakeRef.current));
          setScore(s => s + 1);
          setScoreItem(itemLoc);
@@ -93,14 +97,14 @@ function App(){
       });
       setBoardBoxes(prev => {
          let newBoard = prev.map(row => row.map(box => ({ ...box, color: "" })));
-         newBoard[scoreItemRef.current[0]][scoreItemRef.current[1]].color = COLORS.scoreItem;
-         newBoard[newHead[0]][newHead[1]].color = COLORS.head;
          newBody.forEach(box => {
             newBoard[box[0]][box[1]].color = COLORS.body;
          });
+         newBoard[scoreItemRef.current[0]][scoreItemRef.current[1]].color = COLORS.scoreItem;
+         newBoard[newHead[0]][newHead[1]].color = COLORS.head;
          return newBoard;
       });
-      if(collided) setPlaying(false);
+      if(self_collided) setPlaying(false);
    }
 
    function updateDirection(newDirection){

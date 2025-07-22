@@ -8,11 +8,13 @@ Classic Snake Game built with React and Vite. Control the snake, eat items, and 
 - Modern UI with React
 - Easy to run locally
 
+## 🔗[LIVE DEMO](https://snake-game-flame-mu-28.vercel.app/)
+
 ## Getting Started
 
 ### Prerequisites
 - [Node.js](https://nodejs.org/) (v16 or higher recommended)
-- [npm](https://www.npmjs.com/) (comes with Node.js)
+- [npm](https://www.npmjs.com/)
 
 ### Installation
 1. Clone the repository:
