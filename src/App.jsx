@@ -17,8 +17,8 @@ function App(){
    const [score, setScore] = useState(0);
    const [firstStart, setFirstStart] = useState(true);
 
-   var scoreItem = generateItemLoc(rowNum, colNum, initialSnake);
-   var snake = structuredClone(initialSnake);
+   const scoreItem = useRef(generateItemLoc(rowNum, colNum, initialSnake));
+   const snake = useRef(structuredClone(initialSnake));
 
    useEffect(()=>{
       let interval;
@@ -66,24 +66,24 @@ function App(){
 
    function updateBoard() {
       if (!isPlaying) return;
-      const {newHead, newBody, collided, self_collided, increase} = moveSnake(structuredClone(snake), rowNum, colNum, scoreItem);
+      const {newHead, newBody, collided, self_collided, increase} = moveSnake(structuredClone(snake.current), rowNum, colNum, scoreItem.current);
       if(collided){
          setPlaying(false);
          return;
       }
       else if(increase){
-         scoreItem = generateItemLoc(rowNum, colNum, structuredClone(snake));
+         scoreItem.current = generateItemLoc(rowNum, colNum, structuredClone(snake.current));
          setScore(s => s + 1);
       }
-      snake.head = newHead;
-      snake.body = newBody;
+      snake.current.head = newHead;
+      snake.current.body = newBody;
 
       setBoardBoxes(prev => {
          let newBoard = prev.map(row => row.map(box => ({ ...box, color: "" })));
          newBody.forEach(box => {
             newBoard[box[0]][box[1]].color = COLORS.body;
          });
-         newBoard[scoreItem[0]][scoreItem[1]].color = COLORS.scoreItem;
+         newBoard[scoreItem.current[0]][scoreItem.current[1]].color = COLORS.scoreItem;
          newBoard[newHead[0]][newHead[1]].color = COLORS.head;
          return newBoard;
       });
@@ -91,15 +91,16 @@ function App(){
    }
 
    function updateDirection(newDirection){
-      if(!restrictDirection(newDirection, snake.direction)) return;
-      snake.direction = newDirection;
+      if(!isPlaying) return;
+      else if(restrictDirection(newDirection, snake.current.direction)) return;
+      snake.current.direction = newDirection;
    }
 
    function resetGame(){
       setScore(0);
       setFirstStart(false);
-      scoreItem = generateItemLoc(rowNum, colNum, initialSnake);
-      snake = structuredClone(initialSnake);
+      scoreItem.current = generateItemLoc(rowNum, colNum, initialSnake);
+      snake.current = structuredClone(initialSnake);
       setPlaying(true);
    }
 
